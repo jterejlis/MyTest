@@ -1,4 +1,5 @@
 import sys
+import argparse
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QWidget, QTextEdit
 from check_os import check_os
 from check_hostname import check_hostname
@@ -71,8 +72,56 @@ class InfoApp(QWidget):
     def display_system_info(self):
         self.text_box.setText(str(check_system_info()))
 
+parser = argparse.ArgumentParser(description="System Information Tool")
+parser.add_argument("--hostname", action="store_true", help="Get the hostname")
+parser.add_argument("--ip", action="store_true", help="Get the IP address")
+parser.add_argument("--proxy", action="store_true", help="Get proxy settings")
+parser.add_argument("--bios", action="store_true", help="Get BIOS version")
+parser.add_argument("--system", action="store_true", help="Get system information")
+
+args = parser.parse_args()
+
+if args.hostname:
+        print("Hostname:")
+        print(check_hostname())
+
+
+if args.ip:
+    print("IP Address:")
+    if check_os() == "Windows":
+        print(
+            "External IP:" + check_external_IP() + "\n" + "InternalIP:" + str(check_ipv4_configuration_windows()))
+    elif check_os() == "Linux":
+        print(
+            "External IP:" + check_external_IP() + "\n" + "InternalIP:" + str(check_ipv4_configuration_unix()))
+    elif check_os() == "MacOS":
+       print(
+        "External IP:" + check_external_IP() + "\n" + "InternalIP:" + str(check_ipv4_configuration_macOS()))
+
+
+if args.proxy:
+    print("Proxy Configuration:")
+    if check_os() == "Windows":
+        print(str(check_proxy_configuration_windows()))
+    elif check_os() == "Linux" or "MacOS":
+        print(str(check_proxy_configuration_unix()))
+
+
+    if args.bios:
+        print("BIOS Version:")
+        print(check_bios_version())
+
+
+    if args.system:
+        print("System Information:")
+        print(str(check_system_info()))
+
+    # Jeśli brak argumentów, wyświetl pomoc
+    if not any(vars(args).values()):
+        parser.print_help()
 
 app = QApplication([])
 window = InfoApp()
 window.show()
 app.exec()
+

@@ -1,10 +1,20 @@
 import os
-
+import winreg
 
 
 def check_proxy_configuration_windows():
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                        r"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings") as key:
+            proxy_enable, _ = winreg.QueryValueEx(key, "ProxyEnable")
+            if proxy_enable:  # Sprawdź, czy proxy jest włączone
+                proxy_server, _ = winreg.QueryValueEx(key, "ProxyServer")
+                return f"Proxy Server: {proxy_server}"
+            else:
+                return "Proxy is disabled"
 
-    return "Proxy is disabled"
+    except Exception as e:
+        return f"Error retrieving proxy settings: {e}"
 
 
 

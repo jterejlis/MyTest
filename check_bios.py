@@ -1,4 +1,5 @@
 import subprocess
+import wmi
 from check_os import check_os
 
 def check_bios_version():
@@ -8,14 +9,9 @@ def check_bios_version():
     """
     try:
         if check_os() == 'Windows':  # Windows
-            result = subprocess.run(
-                ["wmic", "bios", "get", "smbiosbiosversion"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            lines = result.stdout.splitlines()
-            bios_version = lines[1].strip() if len(lines) > 1 else "Unknown"
+            c = wmi.WMI()
+            for bios in c.Win32_BIOS():
+                return f"BIOS Version: {bios.SMBIOSBIOSVersion}"
         elif check_os() == "MacOS":
             result = subprocess.run(
                 ["ioreg", "-l"],
