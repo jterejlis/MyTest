@@ -14,4 +14,3 @@ def check_system_info():
     }
     return system_info
 
-print(check_system_info())
