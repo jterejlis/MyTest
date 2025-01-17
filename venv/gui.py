@@ -1,40 +1,78 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QWidget, QTextEdit
+from check_os import check_os
+from check_hostname import check_hostname
+from check_external_IP import check_external_IP
+from check_internal_ip import check_ipv4_configuration_unix, check_ipv4_configuration_windows, check_ipv4_configuration_macOS
+from check_proxy import check_proxy_configuration_windows, check_proxy_configuration_unix
+from check_bios import check_bios_version
+from check_systeminfo import check_system_info
 
 
-class MyWindow(QMainWindow):
+class InfoApp(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("System Info")
 
-        # Ustawienia okna
-        self.setWindowTitle("Moje pierwsze GUI")
-        self.setGeometry(100, 100, 500, 500)
-
-        # Tworzenie widgetów
-        label = QLabel("MyTest.exe", self)
-        button = QPushButton("Kliknij mnie", self)
-        #extview = text
-
-        # Połączenie przycisku z akcją
-        button.clicked.connect(self.on_button_click)
-
-        # Użycie layoutu
+        # Layout
         layout = QVBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(button)
 
-        # Kontener centralny
-        container = QWidget()
-        container.setLayout(layout)
+        # Text box for output
+        self.text_box = QTextEdit()
+        self.text_box.setReadOnly(True)
+        layout.addWidget(self.text_box)
 
-        # Ustawienie kontenera jako centralnego widgetu
-        self.setCentralWidget(container)
+        # Buttons
+        btn_hostname = QPushButton("Get Hostname")
+        btn_hostname.clicked.connect(self.display_hostname)
+        layout.addWidget(btn_hostname)
 
-    def on_button_click(self):
-        self.setWindowTitle("Przycisk kliknięty!")
+        btn_ip = QPushButton("Get IP Address")
+        btn_ip.clicked.connect(self.display_ip)
+        layout.addWidget(btn_ip)
+
+        btn_proxy = QPushButton("Get Proxy Configuration")
+        btn_proxy.clicked.connect(self.display_proxy)
+        layout.addWidget(btn_proxy)
+
+        btn_bios = QPushButton("Get BIOS Version")
+        btn_bios.clicked.connect(self.display_bios)
+        layout.addWidget(btn_bios)
+
+        btn_system = QPushButton("Get System Information")
+        btn_system.clicked.connect(self.display_system_info)
+        layout.addWidget(btn_system)
+
+        self.setLayout(layout)
+
+    def display_hostname(self):
+        self.text_box.setText(check_hostname())
+
+    def display_ip(self):
+        if check_os() == "Windows":
+            self.text_box.setText(
+                "External IP:" + check_external_IP() + "\n" + "InternalIP:" + str(check_ipv4_configuration_windows()))
+        elif check_os() == "Linux":
+            self.text_box.setText(
+                "External IP:" + check_external_IP() + "\n" + "InternalIP:" + str(check_ipv4_configuration_unix()))
+        elif check_os() == "MacOS":
+            self.text_box.setText(
+                "External IP:" + check_external_IP() + "\n" + "InternalIP:" + str(check_ipv4_configuration_macOS()))
+
+    def display_proxy(self):
+        if check_os() == "Windows":
+            self.text_box.setText(str(check_proxy_configuration_windows()))
+        elif check_os() == "Linux" or "MacOS":
+            self.text_box.setText(str(check_proxy_configuration_unix()))
+
+    def display_bios(self):
+        self.text_box.setText(check_bios_version())
+
+    def display_system_info(self):
+        self.text_box.setText(str(check_system_info()))
 
 
-app = QApplication(sys.argv)
-window = MyWindow()
+app = QApplication([])
+window = InfoApp()
 window.show()
-sys.exit(app.exec())
+app.exec()
